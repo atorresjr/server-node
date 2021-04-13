@@ -1,15 +1,28 @@
 import './helpers/dotenv'
 
 import express from 'express'
+import morgan from 'morgan'
+import cors from 'cors'
+import helmet from 'helmet'
 
-const app = express()
+import logger from './helpers/logger'
+import router from './routes'
+// eslint-disable-next-line import/named
+import { notFound, errorHandler } from './helpers/errors'
 
 const port = parseInt(process.env.PORT, 10) || 3000
 
-app.get('/', (req, res) => {
-  // eslint-disable-next-line no-unused-vars
-  const title = process.env.TITLE || 'Server'
-  res.send({ msg: process.env.TITLE })
-})
+const app = express()
 
-app.listen(port)
+app.use(morgan(process.env.MORGAN_LOG))
+app.use(cors({ origin: process.env.ORIGIN }))
+app.use(helmet())
+
+app.use(router)
+
+app.use(notFound)
+app.use(errorHandler)
+
+app.listen(port, () =>
+  logger.info(`Application started at http://localhost:${process.env.PORT}`),
+)
